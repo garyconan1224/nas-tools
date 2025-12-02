@@ -1,30 +1,9 @@
-name: 帮我下载Docker镜像(修正版)
-
-on: workflow_dispatch
-
-jobs:
-  download-and-pack:
-    runs-on: ubuntu-latest
-    steps:
-      - name: 1. 下载镜像 (Docker Pull)
-        run: |
-          # 注意：这里加了 ghcr.io 前缀，这回肯定能找到了
-          docker pull ghcr.io/manhinhang/futu-opend-docker:latest
-          
-          # Python 依然从官方下
-          docker pull python:3.9-slim
-
-      - name: 2. 打包成文件 (Docker Save)
-        run: |
-          # 打包 OpenD (保存为 futu-opend.tar)
-          docker save -o futu-opend.tar ghcr.io/manhinhang/futu-opend-docker:latest
-          
-          # 打包 Python (保存为 python-brain.tar)
-          docker save -o python-brain.tar python:3.9-slim
-
-      - name: 3. 上传结果 (Upload)
-        uses: actions/upload-artifact@v4
-        with:
-          name: nas-docker-files
-          path: "*.tar"
-          retention-days: 1
+download-and-pack失败 3 minutes ago 4秒之内
+Set up job
+1. 下载镜像 (Docker Pull)
+1
+8
+9
+Run # 注意：这里加了 ghcr.io 前缀，这回肯定能找到了Error response from daemon: manifest unknownError: Process completed with exit code 1.
+2. 打包成文件 (Docker Save)
+3. 上传结果 (Upload)Complete job
