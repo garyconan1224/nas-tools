@@ -1,0 +1,28 @@
+name: 帮我下载Docker镜像
+
+on: workflow_dispatch # 允许手动点击运行
+
+jobs:
+  download-and-pack:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 1. 下载镜像 (Docker Pull)
+        run: |
+          # 下载 OpenD (交易网关)
+          docker pull manhinhang/futu-opend-docker:latest
+          # 下载 Python (策略大脑)
+          docker pull python:3.9-slim
+
+      - name: 2. 打包成文件 (Docker Save)
+        run: |
+          # 打包 OpenD
+          docker save -o futu-opend.tar manhinhang/futu-opend-docker:latest
+          # 打包 Python
+          docker save -o python-brain.tar python:3.9-slim
+
+      - name: 3. 上传结果 (Upload)
+        uses: actions/upload-artifact@v4
+        with:
+          name: nas-docker-files
+          path: "*.tar"
+          retention-days: 1
