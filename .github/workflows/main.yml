@@ -1,6 +1,6 @@
-name: 帮我下载Docker镜像
+name: 帮我下载Docker镜像(修正版)
 
-on: workflow_dispatch # 允许手动点击运行
+on: workflow_dispatch
 
 jobs:
   download-and-pack:
@@ -8,16 +8,18 @@ jobs:
     steps:
       - name: 1. 下载镜像 (Docker Pull)
         run: |
-          # 下载 OpenD (交易网关)
-          docker pull manhinhang/futu-opend-docker:latest
-          # 下载 Python (策略大脑)
+          # 注意：这里加了 ghcr.io 前缀，这回肯定能找到了
+          docker pull ghcr.io/manhinhang/futu-opend-docker:latest
+          
+          # Python 依然从官方下
           docker pull python:3.9-slim
 
       - name: 2. 打包成文件 (Docker Save)
         run: |
-          # 打包 OpenD
-          docker save -o futu-opend.tar manhinhang/futu-opend-docker:latest
-          # 打包 Python
+          # 打包 OpenD (保存为 futu-opend.tar)
+          docker save -o futu-opend.tar ghcr.io/manhinhang/futu-opend-docker:latest
+          
+          # 打包 Python (保存为 python-brain.tar)
           docker save -o python-brain.tar python:3.9-slim
 
       - name: 3. 上传结果 (Upload)
