@@ -1,9 +1,59 @@
-download-and-pack失败 3 minutes ago 4秒之内
-Set up job
-1. 下载镜像 (Docker Pull)
-1
-8
-9
-Run # 注意：这里加了 ghcr.io 前缀，这回肯定能找到了Error response from daemon: manifest unknownError: Process completed with exit code 1.
-2. 打包成文件 (Docker Save)
-3. 上传结果 (Upload)Complete job
+name: 三保险下载版
+
+on: workflow_dispatch
+
+jobs:
+  download-and-pack:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 1. 下载 Python (这步肯定会成功)
+        run: docker pull python:3.9-slim
+
+      - name: 2. 尝试下载 OpenD (方案A: ghostry)
+        id: try_a
+        continue-on-error: true # 失败了不要停，继续试下一个
+        run: docker pull ghostry/futu-opend:latest
+
+      - name: 3. 尝试下载 OpenD (方案B: limouren)
+        id: try_b
+        if: steps.try_a.outcome == 'failure' # 如果A失败了才跑这个
+        continue-on-error: true
+        run: docker pull limouren/futu-opend:latest
+
+      - name: 4. 尝试下载 OpenD (方案C: garyli1019)
+        id: try_c
+        if: steps.try_b.outcome == 'failure' && steps.try_a.outcome == 'failure'
+        continue-on-error: true
+        run: docker pull garyli1019/futu-opend:latest
+
+      - name: 5. 打包 Python
+        run: docker save -o python-brain.tar python:3.9-slim
+
+      - name: 6. 打包 OpenD (智能打包)
+        run: |
+          # 检查哪个下载成功了，就打包哪个
+          if docker image inspect ghostry/futu-opend:latest > /dev/null 2>&1; then
+            echo "方案A成功，正在打包..."
+            docker tag ghostry/futu-opend:latest futu-opend-final:latest
+            docker save -o futu-opend.tar futu-opend-final:latest
+          
+          elif docker image inspect limouren/futu-opend:latest > /dev/null 2>&1; then
+            echo "方案B成功，正在打包..."
+            docker tag limouren/futu-opend:latest futu-opend-final:latest
+            docker save -o futu-opend.tar futu-opend-final:latest
+            
+          elif docker image inspect garyli1019/futu-opend:latest > /dev/null 2>&1; then
+            echo "方案C成功，正在打包..."
+            docker tag garyli1019/futu-opend:latest futu-opend-final:latest
+            docker save -o futu-opend.tar futu-opend-final:latest
+          
+          else
+            echo "三个都失败了...但至少先把 Python 给你保存下来"
+          fi
+
+      - name: 7. 上传结果
+        uses: actions/upload-artifact@v4
+        with:
+          name: nas-docker-files
+          path: "*.tar"
+          retention-days: 1
