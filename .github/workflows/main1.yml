@@ -1,0 +1,32 @@
+name: 救命版下载
+
+on: workflow_dispatch
+
+jobs:
+  download-and-pack:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 1. 下载镜像 (Docker Pull)
+        run: |
+          # ---------------------------------------------------
+          # 换成了 titwdj 这个作者的镜像，目前可用
+          # ---------------------------------------------------
+          docker pull titwdj/futu-opend:latest
+          
+          # Python 依然下官方的
+          docker pull python:3.9-slim
+
+      - name: 2. 打包成文件 (Docker Save)
+        run: |
+          # 打包 OpenD (保存为 futu-opend.tar)
+          docker save -o futu-opend.tar titwdj/futu-opend:latest
+          
+          # 打包 Python (保存为 python-brain.tar)
+          docker save -o python-brain.tar python:3.9-slim
+
+      - name: 3. 上传结果 (Upload)
+        uses: actions/upload-artifact@v4
+        with:
+          name: nas-docker-files
+          path: "*.tar"
+          retention-days: 1
